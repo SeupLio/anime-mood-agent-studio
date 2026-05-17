@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Anime Mood Agent Studio</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="workspace">
+        <div class="panel input-panel">
+          <header>
+            <p class="eyebrow">Multimodal Agent Demo</p>
+            <h1>Anime Mood Agent Studio</h1>
+          </header>
+
+          <form id="analysis-form">
+            <label class="field">
+              <span>玩家文本反馈</span>
+              <textarea
+                id="feedback"
+                name="text"
+                rows="7"
+                placeholder="例如：新角色真的很好看，但我有点担心抽不到，活动时间也太紧了。"
+              ></textarea>
+            </label>
+
+            <div class="form-grid">
+              <label class="field">
+                <span>Agent 人设</span>
+                <select id="archetype" name="archetype">
+                  <option>温柔治愈</option>
+                  <option>冷静策士</option>
+                  <option>元气伙伴</option>
+                </select>
+              </label>
+
+              <label class="field file-field">
+                <span>角色/场景图片</span>
+                <input id="image" name="image" type="file" accept="image/*" />
+              </label>
+            </div>
+
+            <div class="sample-row" id="samples"></div>
+
+            <button class="primary-button" type="submit">运行情绪感知 Agent</button>
+          </form>
+        </div>
+
+        <div class="panel result-panel">
+          <div class="result-header">
+            <div>
+              <p class="eyebrow">Fusion State</p>
+              <h2 id="primary-emotion">等待分析</h2>
+            </div>
+            <div class="risk-pill" id="risk-level">risk: -</div>
+          </div>
+
+          <div class="meters">
+            <div>
+              <div class="meter-label"><span>效价</span><b id="valence-value">0.00</b></div>
+              <div class="meter"><span id="valence-meter"></span></div>
+            </div>
+            <div>
+              <div class="meter-label"><span>唤醒度</span><b id="arousal-value">0.00</b></div>
+              <div class="meter"><span id="arousal-meter"></span></div>
+            </div>
+            <div>
+              <div class="meter-label"><span>置信度</span><b id="confidence-value">0.00</b></div>
+              <div class="meter"><span id="confidence-meter"></span></div>
+            </div>
+          </div>
+
+          <div class="emotion-grid" id="emotion-grid"></div>
+
+          <section class="agent-card">
+            <p class="eyebrow">Agent Reply</p>
+            <p id="player-reply">提交文本或图片后，这里会生成角色化回复和运营动作。</p>
+          </section>
+
+          <section class="two-column">
+            <div>
+              <p class="eyebrow">Ops Actions</p>
+              <ul id="ops-actions"></ul>
+            </div>
+            <div>
+              <p class="eyebrow">Trace</p>
+              <ol id="trace"></ol>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
