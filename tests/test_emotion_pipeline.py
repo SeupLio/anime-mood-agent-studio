@@ -7,6 +7,7 @@ from PIL import Image
 from app.core.agent import build_agent_advice
 from app.core.fusion import fuse_signals
 from app.core.image_emotion import analyze_image
+from app.core.semantic import analyze_semantic_alignment
 from app.core.text_emotion import analyze_text
 
 
@@ -54,3 +55,16 @@ def test_multimodal_fusion_keeps_both_modalities() -> None:
     assert fusion.primary_emotion in {"joy", "anticipation", "surprise"}
     assert "融合权重" in fusion.explanation[0]
 
+
+def test_semantic_fallback_detects_valence_contrast() -> None:
+    text = analyze_text("这次活动太糟糕了，真的有点失望")
+    image = Image.new("RGB", (64, 64), (250, 226, 120))
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+
+    image_signal = analyze_image(buffer.getvalue())
+    semantic = analyze_semantic_alignment("这次活动太糟糕了，真的有点失望", buffer.getvalue(), text, image_signal)
+
+    assert semantic is not None
+    assert semantic.backend == "fallback-semantic"
+    assert semantic.contrast_score > 0.4

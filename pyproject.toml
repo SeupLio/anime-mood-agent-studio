@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115.0",
+  "imageio[ffmpeg]>=2.34.0",
   "pillow>=10.4.0",
   "pydantic>=2.8.0",
   "python-multipart>=0.0.9",
@@ -21,4 +22,3 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
-

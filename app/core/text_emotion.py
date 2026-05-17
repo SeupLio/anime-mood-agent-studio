@@ -3,6 +3,8 @@ from __future__ import annotations
 import math
 import re
 
+from app.core.config import get_settings
+from app.core.llm_emotion import blend_text_signals, classify_text_with_deepseek
 from app.core.schemas import EmotionVector, TextSignal
 
 
@@ -40,6 +42,9 @@ LEXICON: dict[str, dict[str, float]] = {
         "垃圾": 1.0,
         "骗氪": 1.0,
         "退坑": 0.9,
+        "吵起来": 0.8,
+        "背刺": 0.9,
+        "心态爆炸": 0.9,
         "angry": 1.0,
         "trash": 1.0,
         "scam": 1.0,
@@ -87,6 +92,9 @@ LEXICON: dict[str, dict[str, float]] = {
         "反感": 0.9,
         "厌烦": 0.8,
         "烦": 0.7,
+        "模糊": 0.6,
+        "伤信任": 0.9,
+        "不满": 0.8,
         "disgusting": 1.0,
         "annoying": 0.8,
     },
@@ -99,6 +107,26 @@ NEGATIVE_EMOJIS = ("😡", "😭", "💢", "👎", "😰", "😞")
 
 
 def analyze_text(text: str) -> TextSignal:
+    lexicon_signal = _analyze_text_with_lexicon(text)
+    backend = get_settings().text_emotion_backend.lower()
+    if backend == "lexicon":
+        return lexicon_signal
+
+    model_signal = classify_text_with_deepseek(text)
+    if backend == "deepseek":
+        if model_signal is None:
+            lexicon_signal.evidence.append("DeepSeek 不可用，回退到词典 baseline")
+            return lexicon_signal
+        return model_signal
+
+    if backend == "hybrid":
+        return blend_text_signals(lexicon_signal, model_signal)
+
+    lexicon_signal.evidence.append(f"未知文本模型后端 {backend}，回退到词典 baseline")
+    return lexicon_signal
+
+
+def _analyze_text_with_lexicon(text: str) -> TextSignal:
     normalized = text.strip().lower()
     scores = {emotion: 0.0 for emotion in EmotionVector.model_fields}
     detected_terms: list[str] = []

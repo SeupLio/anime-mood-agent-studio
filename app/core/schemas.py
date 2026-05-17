@@ -68,6 +68,86 @@ class FusionResult(BaseModel):
     explanation: list[str]
 
 
+class SemanticSignal(BaseModel):
+    backend: str
+    consistency_score: float = Field(ge=0.0, le=1.0)
+    contrast_score: float = Field(ge=0.0, le=1.0)
+    label: Literal["aligned", "contrast", "weak", "unavailable"]
+    evidence: list[str]
+
+
+class RagCitation(BaseModel):
+    chunk_id: str
+    source_doc: str
+    title: str
+    section: str
+    score: float
+    content: str
+    tags: list[str] = []
+
+
+class RagResponse(BaseModel):
+    question: str
+    answer: str
+    citations: list[RagCitation]
+    backend: str
+
+
+class TrendPoint(BaseModel):
+    date: str
+    total: int
+    negative: int
+    high_risk: int
+    avg_confidence: float
+
+
+class FeedbackCluster(BaseModel):
+    name: str
+    size: int
+    risk_level: str
+    emotions: dict[str, int]
+    top_terms: list[str]
+    sample_ids: list[str]
+
+
+class RiskSample(BaseModel):
+    feedback_id: str
+    created_at: str
+    version: str
+    event_name: str
+    text: str
+    fused_emotion: str
+    risk_level: str
+    recommended_action: str
+
+
+class TrendDashboard(BaseModel):
+    total: int
+    filters: dict[str, str | None]
+    risk_counts: dict[str, int]
+    emotion_counts: dict[str, int]
+    versions: list[str]
+    events: list[str]
+    trend: list[TrendPoint]
+    clusters: list[FeedbackCluster]
+    risk_samples: list[RiskSample]
+
+
+class VideoFrameSignal(BaseModel):
+    frame_index: int
+    timestamp_sec: float
+    image: ImageSignal
+
+
+class VideoTimeline(BaseModel):
+    filename: str
+    frames: list[VideoFrameSignal]
+    primary_emotion: EmotionName
+    avg_valence: float
+    avg_arousal: float
+    summary: list[str]
+
+
 class AgentStep(BaseModel):
     tool: str
     observation: str
@@ -86,6 +166,6 @@ class AgentAdvice(BaseModel):
 class AnalysisResponse(BaseModel):
     text: TextSignal | None
     image: ImageSignal | None
+    semantic: SemanticSignal | None = None
     fusion: FusionResult
     agent: AgentAdvice
-
