@@ -3,6 +3,7 @@ const feedback = document.querySelector("#feedback");
 const archetype = document.querySelector("#archetype");
 const samples = document.querySelector("#samples");
 const emotionGrid = document.querySelector("#emotion-grid");
+const apiBase = window.location.protocol === "file:" ? "http://127.0.0.1:8000" : "";
 
 const emotionLabels = {
   joy: "喜悦",
@@ -17,8 +18,7 @@ const emotionLabels = {
 };
 
 async function loadExamples() {
-  const response = await fetch("/api/examples");
-  const data = await response.json();
+  const data = await requestJson("/api/examples");
   samples.innerHTML = "";
   data.items.forEach((item) => {
     const button = document.createElement("button");
@@ -30,6 +30,34 @@ async function loadExamples() {
     });
     samples.appendChild(button);
   });
+}
+
+function apiUrl(path) {
+  return `${apiBase}${path}`;
+}
+
+async function requestJson(path, options = {}) {
+  let response;
+  try {
+    response = await fetch(apiUrl(path), options);
+  } catch (error) {
+    throw new Error(
+      "无法连接后端服务。请确认已运行：uvicorn app.main:app --host 0.0.0.0 --port 8000，并通过 http://127.0.0.1:8000 打开页面。"
+    );
+  }
+
+  if (!response.ok) {
+    let detail = "分析失败";
+    try {
+      const payload = await response.json();
+      detail = payload.detail || detail;
+    } catch (error) {
+      detail = `${detail}：HTTP ${response.status}`;
+    }
+    throw new Error(detail);
+  }
+
+  return response.json();
 }
 
 function setMeter(id, value, signed = false) {
@@ -84,15 +112,11 @@ form.addEventListener("submit", async (event) => {
 
   try {
     const formData = new FormData(form);
-    const response = await fetch("/api/analyze", {
+    const data = await requestJson("/api/analyze", {
       method: "POST",
       body: formData,
     });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "分析失败");
-    }
-    renderResult(await response.json());
+    renderResult(data);
   } catch (error) {
     document.querySelector("#player-reply").textContent = error.message;
   } finally {
@@ -101,5 +125,6 @@ form.addEventListener("submit", async (event) => {
   }
 });
 
-loadExamples();
-
+loadExamples().catch((error) => {
+  document.querySelector("#player-reply").textContent = error.message;
+});

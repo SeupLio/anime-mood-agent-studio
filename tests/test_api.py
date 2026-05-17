@@ -18,6 +18,19 @@ def test_health_endpoint() -> None:
     assert response.json()["status"] == "ok"
 
 
+def test_cors_allows_static_page_api_calls() -> None:
+    response = client.options(
+        "/api/analyze",
+        headers={
+            "Origin": "null",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "*"
+
+
 def test_analyze_text_only() -> None:
     response = client.post(
         "/api/analyze",
@@ -49,4 +62,3 @@ def test_analyze_with_image_upload() -> None:
     assert payload["image"] is not None
     assert payload["fusion"]["confidence"] > 0.2
     assert payload["agent"]["ops_actions"]
-

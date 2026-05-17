@@ -74,6 +74,20 @@ API 文档：
 http://localhost:8000/docs
 ```
 
+### 常见问题
+
+如果页面提交后显示“无法连接后端服务”或浏览器原生的 `Failed to fetch`，通常是 FastAPI 服务没有启动，或页面不是通过 `http://127.0.0.1:8000` / `http://localhost:8000` 打开的。请先运行：
+
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+再打开：
+
+```text
+http://127.0.0.1:8000
+```
+
 ## Docker 部署
 
 ```bash

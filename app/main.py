@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import UnidentifiedImageError
@@ -21,6 +22,12 @@ app = FastAPI(
     title="Anime Mood Agent Studio",
     description="Multimodal emotion fusion and agent advice for anime game feedback.",
     version="0.1.0",
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
 )
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -82,4 +89,3 @@ async def analyze(
     fusion = fuse_signals(text_signal, image_signal)
     agent = build_agent_advice(text_signal, image_signal, fusion, archetype)
     return AnalysisResponse(text=text_signal, image=image_signal, fusion=fusion, agent=agent)
-
