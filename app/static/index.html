@@ -20,6 +20,7 @@
       <nav class="tabs" aria-label="workspace">
         <button class="tab active" data-tab="analyze">单样本分析</button>
         <button class="tab" data-tab="dashboard">反馈趋势</button>
+        <button class="tab" data-tab="evaluation">模型评估</button>
         <button class="tab" data-tab="rag">知识库 RAG</button>
         <button class="tab" data-tab="video">视频时间线</button>
       </nav>
@@ -59,6 +60,7 @@
             </div>
 
             <div class="sample-row" id="samples"></div>
+            <p class="asset-note">参考图仅用于快速填充上传素材，模拟角色立绘、活动图和战斗截图输入。</p>
             <div class="reference-gallery" id="reference-gallery"></div>
 
             <button class="primary-button" type="submit">运行情绪感知 Agent</button>
@@ -140,6 +142,33 @@
           <section>
             <p class="eyebrow">Risk Samples</p>
             <div class="risk-list" id="risk-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-page" id="tab-evaluation">
+        <div class="panel eval-panel">
+          <div class="board-head">
+            <div>
+              <p class="eyebrow">Model Evaluation</p>
+              <h2>可复现情绪分类基准</h2>
+            </div>
+            <button class="primary-button compact-button" id="run-eval" type="button">刷新评估</button>
+          </div>
+          <div class="stats-grid" id="eval-metrics"></div>
+          <div class="dashboard-grid">
+            <section>
+              <p class="eyebrow">Confusion Matrix Top Cells</p>
+              <div class="cluster-list" id="confusion-list"></div>
+            </section>
+            <section>
+              <p class="eyebrow">Hard Examples</p>
+              <div class="risk-list" id="hard-list"></div>
+            </section>
+          </div>
+          <section>
+            <p class="eyebrow">Recommendations</p>
+            <ul id="eval-recommendations"></ul>
           </section>
         </div>
       </section>

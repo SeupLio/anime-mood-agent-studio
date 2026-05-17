@@ -22,7 +22,7 @@ body {
   min-height: 100vh;
   background:
     linear-gradient(180deg, rgba(238, 243, 246, 0.15), rgba(238, 243, 246, 0.92) 460px),
-    url("/static/assets/reference_4.jpg") center top / cover fixed,
+    url("/static/assets/hero_background.jpg") center top / cover fixed,
     var(--bg);
   color: var(--ink);
   font-family:
@@ -175,6 +175,7 @@ h2 {
 .input-panel,
 .result-panel,
 .board-panel,
+.eval-panel,
 .rag-panel,
 .video-panel {
   display: grid;
@@ -229,6 +230,13 @@ input[type="file"] {
   gap: 8px;
 }
 
+.asset-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .sample-row button {
   min-height: 36px;
   border: 1px solid var(--line);
@@ -256,6 +264,10 @@ input[type="file"] {
   padding: 0 18px;
   color: white;
   background: linear-gradient(135deg, #1d2838, #295da8);
+}
+
+.compact-button {
+  min-height: 42px;
 }
 
 .primary-button:disabled {
@@ -423,6 +435,14 @@ ol {
   font-size: 28px;
 }
 
+.stat em {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-style: normal;
+  font-weight: 800;
+}
+
 .trend-list,
 .cluster-list,
 .risk-list,
@@ -579,6 +599,7 @@ ol {
   .input-panel,
   .result-panel,
   .board-panel,
+  .eval-panel,
   .rag-panel,
   .video-panel {
     padding: 16px;

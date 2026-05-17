@@ -249,6 +249,48 @@ function renderDashboard(data) {
     .join("");
 }
 
+async function loadEvaluation() {
+  const data = await requestJson("/api/evaluation");
+  renderEvaluation(data);
+}
+
+function renderEvaluation(data) {
+  const metrics = document.querySelector("#eval-metrics");
+  metrics.innerHTML = "";
+  data.metrics.forEach((metric) => {
+    const item = document.createElement("div");
+    item.className = "stat";
+    item.innerHTML = `<span>${metric.name}</span><b>${metric.value}</b><em>support ${metric.support}</em>`;
+    metrics.appendChild(item);
+  });
+
+  document.querySelector("#confusion-list").innerHTML = data.confusion
+    .map(
+      (item) => `
+        <article class="cluster">
+          <div><b>${item.expected} -> ${item.predicted}</b><span>${item.count} 条</span></div>
+        </article>
+      `
+    )
+    .join("");
+
+  document.querySelector("#hard-list").innerHTML = data.hard_examples
+    .map(
+      (item) => `
+        <article class="risk-item">
+          <b>${item.expected}</b>
+          <div>
+            <span>${item.feedback_id} · pred ${item.predicted} · conf ${item.confidence}</span>
+            <p>${item.text}</p>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+
+  renderList("#eval-recommendations", data.recommendations);
+}
+
 function topKey(values) {
   const entries = Object.entries(values);
   if (!entries.length) return "-";
@@ -327,6 +369,7 @@ async function submitVideo(event) {
 document.querySelector("#analysis-form").addEventListener("submit", submitAnalysis);
 document.querySelector("#rag-form").addEventListener("submit", submitRag);
 document.querySelector("#video-form").addEventListener("submit", submitVideo);
+document.querySelector("#run-eval").addEventListener("click", loadEvaluation);
 document.querySelector("#version-filter").addEventListener("change", loadDashboard);
 document.querySelector("#event-filter").addEventListener("change", loadDashboard);
 
@@ -335,3 +378,4 @@ loadReferenceGallery();
 loadExamples().catch((error) => (document.querySelector("#player-reply").textContent = error.message));
 loadModelStatus().catch(() => {});
 loadDashboard().catch(() => {});
+loadEvaluation().catch(() => {});

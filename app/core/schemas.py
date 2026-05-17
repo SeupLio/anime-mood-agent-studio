@@ -133,6 +133,37 @@ class TrendDashboard(BaseModel):
     risk_samples: list[RiskSample]
 
 
+class ConfusionCell(BaseModel):
+    expected: str
+    predicted: str
+    count: int
+
+
+class EvaluationMetric(BaseModel):
+    name: str
+    value: float
+    support: int
+
+
+class EvaluationExample(BaseModel):
+    feedback_id: str
+    text: str
+    expected: str
+    predicted: str
+    confidence: float
+    risk_level: str
+
+
+class EvaluationReport(BaseModel):
+    dataset_size: int
+    backend: str
+    metrics: list[EvaluationMetric]
+    emotion_support: dict[str, int]
+    confusion: list[ConfusionCell]
+    hard_examples: list[EvaluationExample]
+    recommendations: list[str]
+
+
 class VideoFrameSignal(BaseModel):
     frame_index: int
     timestamp_sec: float

@@ -84,6 +84,17 @@ def test_rag_returns_citations() -> None:
     assert "补偿" in payload["answer"]
 
 
+def test_evaluation_report_is_reproducible() -> None:
+    response = client.get("/api/evaluation?limit=40")
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["dataset_size"] == 40
+    assert payload["metrics"]
+    assert payload["confusion"]
+    assert payload["recommendations"]
+
+
 def test_video_timeline_accepts_gif_upload() -> None:
     frames = [
         Image.new("RGB", (64, 64), (250, 230, 160)),

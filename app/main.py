@@ -10,11 +10,12 @@ from PIL import UnidentifiedImageError
 
 from app.core.agent import ARCHETYPES, build_agent_advice
 from app.core.config import get_settings
+from app.core.evaluation import evaluate_text_emotion
 from app.core.feedback_store import build_dashboard, examples_from_dataset
 from app.core.fusion import fuse_signals
 from app.core.image_emotion import analyze_image
 from app.core.rag import answer_question
-from app.core.schemas import AnalysisResponse, RagResponse, TrendDashboard, VideoTimeline
+from app.core.schemas import AnalysisResponse, EvaluationReport, RagResponse, TrendDashboard, VideoTimeline
 from app.core.semantic import analyze_semantic_alignment
 from app.core.text_emotion import analyze_text
 from app.core.video_emotion import analyze_video
@@ -118,6 +119,11 @@ async def analyze(
 @app.get("/api/dashboard", response_model=TrendDashboard)
 def dashboard(version: str | None = None, event_name: str | None = None) -> TrendDashboard:
     return build_dashboard(version=version, event_name=event_name)
+
+
+@app.get("/api/evaluation", response_model=EvaluationReport)
+def evaluation(limit: int = 240) -> EvaluationReport:
+    return evaluate_text_emotion(limit=limit)
 
 
 @app.post("/api/rag", response_model=RagResponse)
