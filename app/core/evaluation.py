@@ -4,6 +4,7 @@ from collections import Counter
 
 from app.core.config import get_settings
 from app.core.feedback_store import load_feedback_rows
+from app.core.hard_examples import load_persisted_hard_examples, persist_hard_examples
 from app.core.schemas import ConfusionCell, EvaluationExample, EvaluationMetric, EvaluationReport
 from app.core.text_emotion import analyze_text
 
@@ -44,6 +45,7 @@ def evaluate_text_emotion(limit: int = 240) -> EvaluationReport:
                 )
             )
 
+    persisted_count = persist_hard_examples(hard_examples)
     return EvaluationReport(
         dataset_size=len(rows),
         backend=get_settings().text_emotion_backend,
@@ -52,7 +54,12 @@ def evaluate_text_emotion(limit: int = 240) -> EvaluationReport:
         confusion=_confusion(expected, predicted),
         hard_examples=hard_examples,
         recommendations=_recommendations(expected, predicted, hard_examples),
+        persisted_hard_examples=persisted_count,
     )
+
+
+def continuous_hard_example_set(limit: int = 200) -> list[dict]:
+    return load_persisted_hard_examples(limit=limit)
 
 
 def _primary(values: dict[str, float]) -> str:
