@@ -10,12 +10,25 @@ from PIL import UnidentifiedImageError
 
 from app.core.agent import ARCHETYPES, build_agent_advice
 from app.core.config import get_settings
-from app.core.evaluation import evaluate_text_emotion
+from app.core.drift import detect_version_drift
+from app.core.evaluation import continuous_hard_example_set, evaluate_text_emotion
 from app.core.feedback_store import build_dashboard, examples_from_dataset
 from app.core.fusion import fuse_signals
 from app.core.image_emotion import analyze_image
+from app.core.jobs import get_job, submit_batch_analysis, submit_video_analysis
 from app.core.rag import answer_question
-from app.core.schemas import AnalysisResponse, EvaluationReport, RagResponse, TrendDashboard, VideoTimeline
+from app.core.response_lab import build_reply_experiment
+from app.core.schemas import (
+    AnalysisResponse,
+    BatchAnalyzeRequest,
+    DriftReport,
+    EvaluationReport,
+    JobStatus,
+    RagResponse,
+    ReplyExperiment,
+    TrendDashboard,
+    VideoTimeline,
+)
 from app.core.semantic import analyze_semantic_alignment
 from app.core.text_emotion import analyze_text
 from app.core.video_emotion import analyze_video
@@ -49,16 +62,20 @@ def health() -> dict[str, str]:
 
 
 @app.get("/api/model-status")
-def model_status() -> dict[str, str | bool]:
+def model_status() -> dict[str, str | bool | int]:
     settings = get_settings()
     return {
         "text_emotion_backend": settings.text_emotion_backend,
         "deepseek_configured": bool(settings.deepseek_api_key),
         "deepseek_model": settings.deepseek_model,
+        "chinese_emotion_model_id": settings.chinese_emotion_model_id,
         "multimodal_backend": settings.multimodal_backend,
         "multimodal_model_id": settings.multimodal_model_id,
-        "rag_backend": "keyword-rag",
+        "rag_backend": settings.rag_backend,
+        "rag_embedding_backend": settings.rag_embedding_backend,
+        "rag_reranker_backend": settings.rag_reranker_backend,
         "llm_rag_enabled": settings.enable_llm_rag,
+        "async_worker_count": settings.async_worker_count,
     }
 
 
@@ -126,6 +143,24 @@ def evaluation(limit: int = 240) -> EvaluationReport:
     return evaluate_text_emotion(limit=limit)
 
 
+@app.get("/api/evaluation/hard-examples")
+def hard_examples(limit: int = 120) -> dict[str, list[dict]]:
+    return {"items": continuous_hard_example_set(limit=limit)}
+
+
+@app.get("/api/drift", response_model=DriftReport)
+def drift(
+    baseline_version: str | None = None,
+    current_version: str | None = None,
+    event_name: str | None = None,
+) -> DriftReport:
+    return detect_version_drift(
+        baseline_version=baseline_version,
+        current_version=current_version,
+        event_name=event_name,
+    )
+
+
 @app.post("/api/rag", response_model=RagResponse)
 def rag(question: str = Form(default="维护补偿和客服回复需要注意什么？")) -> RagResponse:
     return answer_question(question)
@@ -138,3 +173,30 @@ async def video(video: UploadFile = File(...), max_frames: int = Form(default=8)
         return analyze_video(payload, video.filename or "upload.mp4", max_frames=max(1, min(max_frames, 16)))
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/video/jobs", response_model=JobStatus)
+async def video_job(video: UploadFile = File(...), max_frames: int = Form(default=16)) -> JobStatus:
+    payload = await video.read()
+    return submit_video_analysis(payload, video.filename or "upload.mp4", max_frames=max(1, min(max_frames, 64)))
+
+
+@app.post("/api/batch/jobs", response_model=JobStatus)
+def batch_job(request: BatchAnalyzeRequest) -> JobStatus:
+    return submit_batch_analysis(request)
+
+
+@app.get("/api/jobs/{job_id}", response_model=JobStatus)
+def job_status(job_id: str) -> JobStatus:
+    job = get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="job not found")
+    return job
+
+
+@app.post("/api/reply-experiment", response_model=ReplyExperiment)
+def reply_experiment(
+    text: str = Form(default="这次礼包说明太离谱了，感觉有点骗氪。"),
+    archetype: str = Form(default="冷静策士"),
+) -> ReplyExperiment:
+    return build_reply_experiment(text, archetype)

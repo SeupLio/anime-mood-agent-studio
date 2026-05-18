@@ -162,6 +162,7 @@ class EvaluationReport(BaseModel):
     confusion: list[ConfusionCell]
     hard_examples: list[EvaluationExample]
     recommendations: list[str]
+    persisted_hard_examples: int = 0
 
 
 class VideoFrameSignal(BaseModel):
@@ -200,3 +201,71 @@ class AnalysisResponse(BaseModel):
     semantic: SemanticSignal | None = None
     fusion: FusionResult
     agent: AgentAdvice
+
+
+class DriftMetric(BaseModel):
+    name: str
+    baseline_value: float
+    current_value: float
+    delta: float
+    severity: Literal["stable", "watch", "alert"]
+
+
+class DriftSegment(BaseModel):
+    version: str
+    event_name: str
+    sample_size: int
+    metrics: list[DriftMetric]
+
+
+class DriftReport(BaseModel):
+    baseline_version: str
+    current_version: str
+    event_name: str | None = None
+    baseline_size: int
+    current_size: int
+    overall_severity: Literal["stable", "watch", "alert"]
+    segments: list[DriftSegment]
+    recommendations: list[str]
+
+
+class BatchAnalyzeRequest(BaseModel):
+    samples: list[str] = Field(min_length=1, max_length=200)
+    archetype: str = "温柔治愈"
+
+
+class JobStatus(BaseModel):
+    job_id: str
+    kind: str
+    status: Literal["queued", "running", "finished", "failed"]
+    created_at: str
+    updated_at: str
+    cache_key: str | None = None
+    result: dict | None = None
+    error: str | None = None
+
+
+class ReplyVariant(BaseModel):
+    variant_id: str
+    strategy: str
+    player_reply: str
+    expected_metric: str
+    score: float
+
+
+class ReviewQueueItem(BaseModel):
+    review_id: str
+    risk_level: str
+    reason: str
+    status: Literal["pending", "approved", "rejected"]
+    selected_variant_id: str
+
+
+class ReplyExperiment(BaseModel):
+    experiment_id: str
+    text: str
+    intent: str
+    risk_level: str
+    variants: list[ReplyVariant]
+    review: ReviewQueueItem | None = None
+    metrics: dict[str, float]

@@ -4,6 +4,7 @@ import math
 import re
 
 from app.core.config import get_settings
+from app.core.chinese_emotion_model import classify_text_with_chinese_model
 from app.core.llm_emotion import blend_text_signals, classify_text_with_deepseek
 from app.core.schemas import EmotionVector, TextSignal
 
@@ -119,8 +120,15 @@ def analyze_text(text: str) -> TextSignal:
             return lexicon_signal
         return model_signal
 
+    if backend in {"zh-model", "chinese-model", "transformers"}:
+        chinese_signal = classify_text_with_chinese_model(text)
+        if chinese_signal is None:
+            lexicon_signal.evidence.append("中文情绪模型不可用，回退到词典 baseline")
+            return lexicon_signal
+        return blend_text_signals(lexicon_signal, chinese_signal)
+
     if backend == "hybrid":
-        return blend_text_signals(lexicon_signal, model_signal)
+        return blend_text_signals(lexicon_signal, model_signal or classify_text_with_chinese_model(text))
 
     lexicon_signal.evidence.append(f"未知文本模型后端 {backend}，回退到词典 baseline")
     return lexicon_signal
